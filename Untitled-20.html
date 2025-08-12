@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nguyễn Tăng Minh Trí — Giới thiệu</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(180deg,#071022 0%, #071a2b 100%);color:#e6eef6;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);width:100%;max-width:900px;border-radius:14px;overflow:hidden;display:grid;grid-template-columns:280px 1fr}
+    .profile{padding:28px;display:flex;flex-direction:column;align-items:center;gap:18px;background:linear-gradient(90deg, rgba(255,255,255,0.01), transparent)}
+    .avatar{width:180px;height:180px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#031021;box-shadow:0 6px 18px rgba(6,11,23,0.6)}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted)}
+    .meta{width:100%;margin-top:6px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+    .content{padding:28px}
+    .section{margin-bottom:18px}
+    .section h2{margin:0 0 8px 0;font-size:16px}
+    .tag{display:inline-block;background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:999px;font-size:13px;margin-right:8px}
+    .list{display:flex;flex-wrap:wrap;gap:8px}
+    .bio{line-height:1.6;color:#d7e7f2}
+    .contact{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:linear-gradient(90deg,var(--accent),#7c3aed);color:#031021;text-decoration:none;font-weight:600}
+    footer{font-size:13px;color:var(--muted);margin-top:16px}
+    @media (max-width:800px){.card{grid-template-columns:1fr;max-width:520px}.profile{flex-direction:row;gap:16px;padding:18px}.avatar{width:96px;height:96px;font-size:14px}}
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <aside class="profile">
+      <div class="avatar" aria-hidden="true">NTMT</div>
+      <div style="text-align:center">
+        <h1>Nguyễn Tăng Minh Trí</h1>
+        <p class="lead">Sinh năm 2006 • Sinh viên Đại học FPT</p>
+        <div class="meta">
+          <div>Vị trí: Sinh viên</div>
+          <div>Ngành: (Bạn có thể thêm ngành học vào đây)</div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="section">
+        <h2>Giới thiệu ngắn</h2>
+        <p class="bio">Xin chào! Mình là <strong>Nguyễn Tăng Minh Trí</strong>, sinh năm 2006, hiện đang là sinh viên tại <strong>Đại học FPT</strong>. Mình thích khám phá công nghệ, học hỏi các kỹ năng lập trình, và tham gia các dự án nhóm để rèn luyện kỹ năng thực tế.</p>
+      </div>
+
+      <div class="section">
+        <h2>Học vấn</h2>
+        <div class="list">
+          <span class="tag">Đại học FPT</span>
+          <span class="tag">Sinh viên 2006</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Kỹ năng & Sở thích</h2>
+        <div class="list">
+          <span class="tag">Lập trình</span>
+          <span class="tag">Thiết kế web</span>
+          <span class="tag">Học nhóm</span>
+          <span class="tag">Game</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Liên hệ</h2>
+        <div class="contact">
+          <a class="btn" href="#">Gửi email</a>
+          <a class="btn" href="#">Kết bạn</a>
+        </div>
+        <footer>Bạn có thể chỉnh sửa nội dung này để thêm ngành học, số điện thoại, hoặc link mạng xã hội.</footer>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
