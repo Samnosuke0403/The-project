@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Video Assignment</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+    body{margin:0;padding:24px;background:#f6f8fb;color:#0b1a2b}
+    .container{max-width:980px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 24px rgba(15,23,42,0.06)}
+    h1{margin:0 0 10px;font-size:20px}
+    p.lead{color:#475569;margin:0 0 18px}
+    .row{display:flex;gap:18px}
+    .col{flex:1}
+    label{display:block;margin-bottom:6px;font-weight:600}
+    input[type=file]{display:block}
+    textarea{width:100%;min-height:80px;padding:8px;border-radius:8px;border:1px solid #e6eaef}
+    button{background:#0369a1;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#f1f5f9;color:#0b1a2b}
+    .preview, .submissions{margin-top:18px}
+    .meta{font-size:13px;color:#64748b;margin-top:8px}
+    .error{color:#dc2626}
+    .submission{border-top:1px dashed #e6eef6;padding:12px 0;display:flex;gap:12px}
+    video{max-width:320px;border-radius:8px;background:black}
+    .info{flex:1}
+    .stars{display:inline-flex;gap:4px;margin-top:8px}
+    .star{cursor:pointer;font-size:20px;user-select:none}
+    .rating-val{font-weight:700;margin-left:8px}
+    .small{font-size:13px;color:#64748b}
+    .note{font-size:13px;color:#475569;background:#f8fafc;padding:8px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload Video Assignment</h1>
+    <p class="lead">Optional: upload a short presentation (under 3 minutes). Add a short note describing your presentation. Watch classmates' submissions and give a rating.</p>
+
+    <div class="row">
+      <div class="col">
+        <label for="videoInput">Choose a video (max 3 minutes)</label>
+        <input id="videoInput" type="file" accept="video/*" />
+        <div class="meta">Allowed duration: <strong>&lt; 3 minutes</strong>. Max file size recommended: 50MB.</div>
+        <div id="durationMsg" class="meta"></div>
+
+        <div class="preview" id="previewArea" style="display:none">
+          <label>Preview</label>
+          <video id="previewVideo" controls preload="metadata"></video>
+          <div class="meta" id="previewMeta"></div>
+        </div>
+
+        <label for="comment">Short note / description</label>
+        <textarea id="comment" placeholder="E.g. '2-minute presentation introducing my project idea.'"></textarea>
+
+        <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+          <button id="uploadBtn">Upload submission</button>
+          <button id="clearBtn" class="secondary">Clear</button>
+          <div style="margin-left:auto" class="small">No peer grading required — just watch & rate.</div>
+        </div>
+
+        <div id="msg" class="meta" style="margin-top:10px"></div>
+      </div>
+
+      <div class="col">
+        <div class="note">Preview your video here. If the video is longer than 3 minutes you'll be prevented from uploading. Ratings are saved locally in your browser for this session.</div>
+
+        <div style="margin-top:12px">
+          <label>Upload rules</label>
+          <ul>
+            <li>Video length must be less than 180 seconds (3 minutes).</li>
+            <li>Keep your description short (one or two sentences).</li>
+            <li>Files are stored only in your browser (no server).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <section class="submissions" id="submissionsSection">
+      <h2 style="margin-top:18px">Submissions</h2>
+      <div id="submissionsList">
+        <!-- submissions will appear here -->
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Simple single-page demo for uploading short videos, commenting and rating.
+    const videoInput = document.getElementById('videoInput');
+    const previewVideo = document.getElementById('previewVideo');
+    const previewArea = document.getElementById('previewArea');
+    const previewMeta = document.getElementById('previewMeta');
+    const durationMsg = document.getElementById('durationMsg');
+    const commentEl = document.getElementById('comment');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const msg = document.getElementById('msg');
+    const submissionsList = document.getElementById('submissionsList');
+
+    // In-memory submissions array: {id, fileUrl, name, duration, size, comment, ratings:[]}
+    const submissions = [];
+
+    let selectedFile = null;
+    let selectedDuration = 0;
+
+    videoInput.addEventListener('change', async (e) => {
+      msg.textContent = '';
+      const file = e.target.files && e.target.files[0];
+      if (!file) return resetPreview();
+      selectedFile = file;
+
+      // quick size check
+      if (file.size > 100 * 1024 * 1024) { // 100MB
+        msg.innerHTML = '<span class="error">File is larger than 100MB — choose a smaller file.</span>';
+        resetPreview();
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      previewVideo.src = url;
+      previewArea.style.display = 'block';
+
+      // wait for metadata to get duration
+      previewVideo.addEventListener('loadedmetadata', function handler() {
+        previewVideo.removeEventListener('loadedmetadata', handler);
+        const dur = previewVideo.duration || 0;
+        selectedDuration = dur;
+        const minutes = Math.floor(dur / 60);
+        const seconds = Math.round(dur % 60).toString().padStart(2,'0');
+        previewMeta.textContent = `Name: ${file.name} — Duration: ${minutes}:${seconds} — Size: ${(file.size/1024/1024).toFixed(2)} MB`;
+
+        if (dur >= 180) {
+          durationMsg.innerHTML = '<span class="error">Video is too long (>= 3 minutes). Please select a shorter clip.</span>';
+        } else {
+          durationMsg.textContent = '';
+        }
+      });
+    });
+
+    clearBtn.addEventListener('click', () => {
+      videoInput.value = '';
+      resetPreview();
+      commentEl.value = '';
+      msg.textContent = '';
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+      msg.textContent = '';
+      if (!selectedFile) { msg.innerHTML = '<span class="error">Choose a video first.</span>'; return; }
+      if (selectedDuration >= 180) { msg.innerHTML = '<span class="error">Video too long (>=3 minutes). Trim it and try again.</span>'; return; }
+
+      const comment = commentEl.value.trim();
+      if (!comment) { msg.innerHTML = '<span class="error">Please add a short description/comment.</span>'; return; }
+
+      // create object URL for playbacks
+      const fileUrl = URL.createObjectURL(selectedFile);
+      const id = Date.now() + '-' + Math.random().toString(36).slice(2,8);
+      const submission = {
+        id, fileUrl, name: selectedFile.name, duration: selectedDuration, size: selectedFile.size, comment, ratings: []
+      };
+      submissions.unshift(submission);
+      renderSubmissions();
+
+      // reset input for next upload
+      videoInput.value = '';
+      resetPreview();
+      commentEl.value = '';
+      msg.textContent = 'Uploaded locally (in this browser session).';
+    });
+
+    function resetPreview() {
+      previewArea.style.display = 'none';
+      previewVideo.pause();
+      previewVideo.removeAttribute('src');
+      previewVideo.load();
+      previewMeta.textContent = '';
+      selectedFile = null;
+      selectedDuration = 0;
+      durationMsg.textContent = '';
+    }
+
+    function renderSubmissions() {
+      submissionsList.innerHTML = '';
+      if (submissions.length === 0) {
+        submissionsList.innerHTML = '<div class="small">No submissions yet — upload one above or refresh to simulate others.</div>';
+        return;
+      }
+
+      for (const s of submissions) {
+        const div = document.createElement('div');
+        div.className = 'submission';
+
+        const vid = document.createElement('video');
+        vid.controls = true;
+        vid.src = s.fileUrl;
+        vid.preload = 'metadata';
+        vid.addEventListener('loadedmetadata', ()=>{});
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        const title = document.createElement('div');
+        title.innerHTML = `<strong>${escapeHtml(s.name)}</strong> <span class="small"> — ${(Math.floor(s.duration/60))}:${String(Math.round(s.duration%60)).padStart(2,'0')}</span>`;
+        const note = document.createElement('div');
+        note.textContent = s.comment;
+        note.style.marginTop = '6px';
+
+        const ratingsWrap = document.createElement('div');
+        ratingsWrap.style.marginTop = '8px';
+
+        const stars = document.createElement('div');
+        stars.className = 'stars';
+        // create 5 interactive stars
+        for (let i=1;i<=5;i++){
+          const span = document.createElement('span');
+          span.className = 'star';
+          span.dataset.val = i;
+          span.innerHTML = '☆';
+          span.title = `${i} star${i>1?'s':''}`;
+          span.addEventListener('click', ()=>{
+            s.ratings.push(i);
+            renderSubmissions();
+          });
+          stars.appendChild(span);
+        }
+
+        const avg = computeAvg(s.ratings);
+        const avgText = document.createElement('span');
+        avgText.className = 'rating-val';
+        avgText.textContent = s.ratings.length ? `${avg.toFixed(1)} / 5 (${s.ratings.length})` : 'No ratings yet';
+
+        ratingsWrap.appendChild(stars);
+        ratingsWrap.appendChild(avgText);
+
+        // download link
+        const dl = document.createElement('a');
+        dl.href = s.fileUrl;
+        dl.download = s.name;
+        dl.textContent = 'Download';
+        dl.style.display = 'inline-block';
+        dl.style.marginLeft = '12px';
+        dl.className = 'small';
+
+        info.appendChild(title);
+        info.appendChild(note);
+        info.appendChild(ratingsWrap);
+        info.appendChild(dl);
+
+        div.appendChild(vid);
+        div.appendChild(info);
+        submissionsList.appendChild(div);
+      }
+
+      // highlight stars based on current average
+      document.querySelectorAll('.submission').forEach((subDiv, idx) => {
+        const s = submissions[idx];
+        const avg = computeAvg(s.ratings);
+        const starSpans = subDiv.querySelectorAll('.star');
+        starSpans.forEach((sp, i) => {
+          const val = i+1;
+          if (s.ratings.length && val <= Math.round(avg)) sp.textContent = '★'; else sp.textContent = '☆';
+        });
+        const avgEl = subDiv.querySelector('.rating-val');
+        avgEl.textContent = s.ratings.length ? `${avg.toFixed(1)} / 5 (${s.ratings.length})` : 'No ratings yet';
+      });
+    }
+
+    function computeAvg(arr) {
+      if (!arr || arr.length === 0) return 0;
+      return arr.reduce((a,b)=>a+b,0)/arr.length;
+    }
+
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // seed with an example submission to demonstrate
+    (function seed(){
+      // create a tiny sample using a data URL (very small silent video not included here) - instead we show a placeholder by leaving list empty.
+      renderSubmissions();
+    })();
+  </script>
+</body>
+</html>
